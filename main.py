@@ -1,3 +1,4 @@
+import math
 import json
 import os.path
 import re
@@ -5,7 +6,6 @@ import datetime
 import numpy as np
 import requests
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 
 
 def get_data():
@@ -32,17 +32,26 @@ def get_data():
                     last_times[game_id] = date
     return play_data
 
+def get_data_step_size(max_val):
+    if max_val < 60:
+        return 5
+    if max_val < 120:
+        return 15
+    if max_val < 300:
+        return 30
+    return 60
 
 def plot_stats(data, game_names, days):
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.15, 0.8, 0.75])
 
-    plt.plot(list(map(list, zip(*data))))
+    plt.plot([*zip(*data)])
 
-    # ax.set_xticklabels([day.strftime("%Y-%m-%d") for day in days])
-    # ax.set_xticks(range(len(days)))
+    y_step_size = get_data_step_size(np.amax(data))
+    plt.yticks(np.arange(0, math.ceil(np.amax(data)/y_step_size+1)*y_step_size, y_step_size))
     plt.xticks(range(len(days)), [day.strftime("%Y-%m-%d") for day in days], rotation=30, ha="right")
 
+    plt.grid()
     plt.legend(game_names.values())
     plt.show()
     return
@@ -71,7 +80,7 @@ def gen_time_stats(game_stats):
         for time in game_stats[game_id]:
             date_index = time['start'].toordinal() - min_date.toordinal()
             game_index = game_ids.index(game_id)
-            game_time = (time['end'] - time['start']).total_seconds() / 3600
+            game_time = (time['end'] - time['start']).total_seconds() / 60
             data[game_index][date_index] += game_time
 
     return data, min_date, max_date
@@ -81,7 +90,7 @@ def get_game_names(game_ids):
     api_url = 'https://store.steampowered.com/api/appdetails'
     with open("name_cache", "r") as readfile:
         names = json.loads(readfile.read())
-    for game_id in tqdm(game_ids):
+    for game_id in game_ids:
         if str(game_id) not in names:
             params = dict(
                 appids=game_id
