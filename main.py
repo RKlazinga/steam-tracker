@@ -21,7 +21,7 @@ class PlotType(Enum):
 def get_data():
     file_location = "C:\\Program Files (x86)\\Steam\\logs"
     file_names = ["content_log.previous.txt", "content_log.txt"]
-    p = re.compile('\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] AppID \d+ state changed : (\w| |,)+')
+    p = re.compile('\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}] AppID \d+ state changed : (\w| |,)+')
     last_times = dict()
     play_data = defaultdict(list)
     for file_name in file_names:
