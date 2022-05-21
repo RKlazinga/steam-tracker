@@ -56,7 +56,11 @@ def plot_stats(data, game_names, days, plot_type=PlotType.LINE):
     fig.add_axes([0.1, 0.15, 0.8, 0.75])
 
     if plot_type == PlotType.LINE:
-        plt.plot([*zip(*data)])
+        markers = ["osdX^P"[int(i%6)] for i in range(data.shape[0])]
+        # plt.plot([*zip(*data)], marker=markers)
+
+        for i, marker in zip(range(len(markers)), markers):
+            plt.plot(data[i], marker=marker)
     if plot_type == PlotType.STACKED_LINE:
         plt.stackplot(range(len(days)), data)
 
