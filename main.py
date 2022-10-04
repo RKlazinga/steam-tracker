@@ -1,3 +1,4 @@
+import copy
 import math
 import json
 import os.path
@@ -29,7 +30,7 @@ def get_data():
         for line in f:
             if p.match(line):
                 date = datetime.datetime.strptime(line[1:20], '%Y-%m-%d %H:%M:%S')
-                start_game = line.__contains__("App Running")
+                start_game = "App Running" in line
                 game_id = int(line.split()[3])
 
                 if game_id in last_times:
@@ -54,13 +55,18 @@ def get_data_step_size(max_val):
 def plot_stats(data, game_names, days, plot_type=PlotType.LINE):
     fig = plt.figure()
     fig.add_axes([0.1, 0.15, 0.8, 0.75])
-
     if plot_type == PlotType.LINE:
-        markers = ["osdX^P"[int(i%6)] for i in range(data.shape[0])]
-        # plt.plot([*zip(*data)], marker=markers)
+        markers = ["osdX^P"[int(i % 6)] for i in range(data.shape[0])]
 
         for i, marker in zip(range(len(markers)), markers):
-            plt.plot(data[i], marker=marker)
+            to_plot = []
+            for idx, x in enumerate(data[i]):
+                # remove sequential zeros in the plot
+                if np.count_nonzero(data[i][max(idx-1, 0): idx+2]) == 0:
+                    to_plot.append(None)
+                else:
+                    to_plot.append(x)
+            plt.plot(to_plot, marker=marker)
     if plot_type == PlotType.STACKED_LINE:
         plt.stackplot(range(len(days)), data)
 
@@ -71,7 +77,6 @@ def plot_stats(data, game_names, days, plot_type=PlotType.LINE):
     plt.grid()
     plt.legend(game_names.values())
     plt.show()
-    return
 
 
 def get_day_span(game_stats):
@@ -138,9 +143,10 @@ def load_data():
 
 
 def merge_data(data1, data2):
+    merged = copy.deepcopy(data1)
     for game_id in data2:
-        data1[game_id] = list(set(data1[game_id] + data2[game_id]))
-    return data1
+        merged[game_id] = list(set(data1[game_id] + data2[game_id]))
+    return merged
 
 
 def main():
