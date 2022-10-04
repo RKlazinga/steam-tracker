@@ -149,8 +149,11 @@ def main():
             writefile.write("{}")
 
     play_data = get_data()
-    cached_data = load_data()
-    play_data = merge_data(cached_data, play_data)
+    try:
+        cached_data = load_data()
+        play_data = merge_data(cached_data, play_data)
+    except FileNotFoundError:
+        pass
     save_data(play_data)
 
     game_ids = list(play_data.keys())
